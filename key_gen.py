@@ -15,5 +15,4 @@ def generate_keys(name):
             format=serialization.PublicPublicKeyInfo.PKCS1
         ))
 
-# generate_keys("alice") # Di device Alice
-generate_keys("bob")   # Di device Bob
+generate_keys("bob") 
