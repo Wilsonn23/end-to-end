@@ -8,14 +8,14 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding as sym_padding
 
 # Konfigurasi
-BOB_IP = '10.129.119.120' # GANTI DENGAN IP BOB
+BOB_IP = '127.0.0.1' # GANTI DENGAN IP BOB
 
 PORT = 5000
 
 # 1. Load Keys
-with open("../keys/alice_private.pem", "rb") as f:
+with open("keys/alice_private.pem", "rb") as f:
     private_key_alice = serialization.load_pem_private_key(f.read(), password=None)
-with open("../keys/bob_public.pem", "rb") as f:
+with open("keys/bob_public.pem", "rb") as f:
     public_key_bob = serialization.load_pem_public_key(f.read())
 
 # 2. Menyiapkan Plaintext [cite: 41, 81, 82]

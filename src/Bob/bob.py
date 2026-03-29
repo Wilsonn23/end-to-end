@@ -54,7 +54,7 @@ def start_bob():
                     asym_padding.PSS(mgf=asym_padding.MGF1(hashes.SHA256()), salt_length=asym_padding.PSS.MAX_LENGTH),
                     hashes.SHA256()
                 )
-                print("Hasil: [VERIFIED] Pesan asli dari Alice dan belum diubah.") [cite: 66, 67]
+                print("Hasil: [VERIFIED] Pesan asli dari Alice dan belum diubah.")
             except Exception:
                 print("Hasil: [FAILED] Tanda tangan tidak valid!")
 
