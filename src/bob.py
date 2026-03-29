@@ -10,9 +10,9 @@ from cryptography.hazmat.primitives import padding as sym_padding
 PORT = 5000
 
 # 1. Load Keys
-with open("bob_private.pem", "rb") as f:
+with open("keys/bob_private.pem", "rb") as f:
     private_key_bob = serialization.load_pem_private_key(f.read(), password=None)
-with open("alice_public.pem", "rb") as f:
+with open("keys/alice_public.pem", "rb") as f:
     public_key_alice = serialization.load_pem_public_key(f.read())
 
 def start_bob():
