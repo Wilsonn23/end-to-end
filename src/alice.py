@@ -8,7 +8,8 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding as sym_padding
 
 # Konfigurasi
-BOB_IP = '10.10.10.88' # GANTI DENGAN IP BOB
+BOB_IP = '10.129.119.120' # GANTI DENGAN IP BOB
+
 PORT = 5000
 
 # 1. Load Keys
