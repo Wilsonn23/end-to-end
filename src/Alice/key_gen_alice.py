@@ -15,8 +15,5 @@ def generate_keys(name):
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         ))
 
-<<<<<<< HEAD
 generate_keys("alice")
-=======
-generate_keys("bob") 
->>>>>>> 4ebd68ec923af4c3c7c9a03fe163ae44b5ff07c8
+
