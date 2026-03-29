@@ -12,7 +12,7 @@ def generate_keys(name):
     with open(f"{name}_public.pem", "wb") as f:
         f.write(private_key.public_key().public_bytes(
             encoding=serialization.Encoding.PEM,
-            format=serialization.PublicPublicKeyInfo.PKCS1
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
         ))
 
 generate_keys("bob") 
