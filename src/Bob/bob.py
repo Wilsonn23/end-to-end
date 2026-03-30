@@ -31,6 +31,8 @@ def start_bob():
                 print(f"[DEBUG] Bytes diterima: {len(data)}", flush=True)
                 payload = json.loads(data.decode())
                 print("[DEBUG] Payload keys: " + ", ".join(payload.keys()), flush=True)
+                pretty_payload = json.dumps(payload, indent=2)
+                print(f"[DEBUG] Payload JSON:\n{pretty_payload}", flush=True)
 
                 # Dekode Base64
                 enc_sym_key = base64.b64decode(payload['encrypted_key'])
