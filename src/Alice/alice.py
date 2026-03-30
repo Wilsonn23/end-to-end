@@ -2,6 +2,7 @@ import socket
 import json
 import base64
 import os
+from pathlib import Path
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding as asym_padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -11,11 +12,13 @@ from cryptography.hazmat.primitives import padding as sym_padding
 BOB_IP = '127.0.0.1' # GANTI DENGAN IP BOB
 
 PORT = 5000
+ROOT_DIR = Path(__file__).resolve().parents[2]
+KEYS_DIR = ROOT_DIR / "keys"
 
-# 1. Load Keys
-with open("keys/alice_private.pem", "rb") as f:
+# 1. Load Keys (absolute path so cwd does not matter)
+with open(KEYS_DIR / "alice_private.pem", "rb") as f:
     private_key_alice = serialization.load_pem_private_key(f.read(), password=None)
-with open("keys/bob_public.pem", "rb") as f:
+with open(KEYS_DIR / "bob_public.pem", "rb") as f:
     public_key_bob = serialization.load_pem_public_key(f.read())
 
 # 2. Menyiapkan Plaintext [cite: 41, 81, 82]
@@ -54,4 +57,4 @@ payload = {
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.connect((BOB_IP, PORT))
     s.sendall(json.dumps(payload).encode())
-    print("Pesan telah dikirim ke Bob.")
+    print("Pesan telah dikirim ke Bob.", flush=True)
