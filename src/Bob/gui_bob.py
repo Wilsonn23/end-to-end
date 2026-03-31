@@ -3,6 +3,7 @@ import json
 import socket
 import threading
 import tkinter as tk
+from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, scrolledtext, ttk
 from typing import Optional
@@ -14,6 +15,10 @@ from cryptography.hazmat.primitives import padding as sym_padding
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 KEYS_DIR = ROOT_DIR / "keys"
+
+
+def now_ts() -> str:
+    return datetime.now().strftime("%H:%M:%S")
 
 
 def load_keys():
@@ -48,8 +53,6 @@ class BobServer(threading.Thread):
                 self.log("[WARN] Tidak ada data diterima")
                 return
             payload = json.loads(data.decode())
-            pretty_payload = json.dumps(payload, indent=2)
-            self.log(f"Payload masuk dari {addr}:\n{pretty_payload}")
 
             enc_sym_key = base64.b64decode(payload["encrypted_key"])
             ciphertext = base64.b64decode(payload["ciphertext"])
@@ -71,9 +74,10 @@ class BobServer(threading.Thread):
             plaintext = unpadder.update(padded_plaintext) + unpadder.finalize()
 
             message_text = plaintext.decode()
+            ts = now_ts()
             self.log(f"[INFO] Pesan didekripsi: {message_text}")
             if self.message_cb:
-                self.message_cb(message_text)
+                self.message_cb(message_text, ts)
 
             try:
                 self.public_key_alice.verify(
@@ -98,7 +102,7 @@ class BobServer(threading.Thread):
                 s.bind(("0.0.0.0", self.port))
                 s.listen()
                 s.settimeout(0.5)
-                self.log(f"Bob menunggu pesan di port {self.port}...")
+                self.log(f"[INFO] Bob menunggu pesan di port {self.port}...")
 
                 while not self._stop_event.is_set():
                     try:
@@ -111,7 +115,7 @@ class BobServer(threading.Thread):
         except OSError as exc:
             self.log(f"[ERROR] Tidak bisa membuka port {self.port}: {exc}")
         finally:
-            self.log("Server dihentikan")
+            self.log("[INFO] Server dihentikan")
 
 
 class BobApp:
@@ -138,6 +142,22 @@ class BobApp:
         self.stop_btn = ttk.Button(control_frame, text="Stop", command=self.stop_server, state=tk.DISABLED)
         self.stop_btn.grid(row=0, column=3, padx=(4, 4), pady=4)
 
+        chat_frame = ttk.LabelFrame(container, text="Chat")
+        chat_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 8))
+
+        self.chat_canvas = tk.Canvas(chat_frame, borderwidth=0, highlightthickness=0)
+        self.chat_scroll = ttk.Scrollbar(chat_frame, orient="vertical", command=self.chat_canvas.yview)
+        self.chat_inner = ttk.Frame(self.chat_canvas)
+
+        self.chat_inner.bind(
+            "<Configure>", lambda e: self.chat_canvas.configure(scrollregion=self.chat_canvas.bbox("all"))
+        )
+        self.chat_canvas.create_window((0, 0), window=self.chat_inner, anchor="nw")
+        self.chat_canvas.configure(yscrollcommand=self.chat_scroll.set)
+
+        self.chat_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.chat_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
         status_frame = ttk.LabelFrame(container, text="Status Pesan Terakhir")
         status_frame.pack(fill=tk.X, expand=False, pady=(0, 8))
 
@@ -149,19 +169,55 @@ class BobApp:
         log_frame = ttk.LabelFrame(container, text="Log")
         log_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.log_box = scrolledtext.ScrolledText(log_frame, height=14, state=tk.DISABLED, wrap=tk.WORD)
+        self.log_box = scrolledtext.ScrolledText(log_frame, height=10, state=tk.DISABLED, wrap=tk.WORD)
         self.log_box.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
 
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def append_log(self, text: str):
+        ts = now_ts()
         self.log_box.configure(state=tk.NORMAL)
-        self.log_box.insert(tk.END, text + "\n")
+        self.log_box.insert(tk.END, f"[{ts}] {text}\n")
         self.log_box.see(tk.END)
         self.log_box.configure(state=tk.DISABLED)
 
     def set_last_message(self, message: str):
         self.last_message_var.set(message)
+
+    def add_message_bubble(self, message: str, ts: str):
+        self.set_last_message(f"{ts} | {message}")
+
+        bubble_wrapper = ttk.Frame(self.chat_inner)
+        bubble_wrapper.pack(fill=tk.X, pady=6, padx=6, anchor="w")
+
+        bubble = tk.Frame(bubble_wrapper, bg="#e6f3ff", bd=0, highlightthickness=0)
+        bubble.pack(anchor="w")
+
+        msg_label = tk.Label(
+            bubble,
+            text=message,
+            bg="#e6f3ff",
+            fg="#0f172a",
+            justify=tk.LEFT,
+            wraplength=420,
+            padx=10,
+            pady=6,
+        )
+        msg_label.pack(anchor="w")
+
+        ts_label = tk.Label(
+            bubble,
+            text=f"Alice • {ts}",
+            bg="#e6f3ff",
+            fg="#64748b",
+            font=("Segoe UI", 8),
+            padx=10,
+            pady=0,
+        )
+        ts_label.pack(anchor="e", pady=4)
+
+        self.chat_canvas.update_idletasks()
+        self.chat_canvas.yview_moveto(1.0)
 
     def start_server(self):
         if self.server and self.server.is_alive():
@@ -183,7 +239,7 @@ class BobApp:
             self.private_key_bob,
             self.public_key_alice,
             self.append_log,
-            self.set_last_message,
+            self.add_message_bubble,
         )
         self.server.start()
         self.start_btn.configure(state=tk.DISABLED)

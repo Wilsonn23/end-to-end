@@ -25,7 +25,7 @@ def load_keys():
     return private_key_alice, public_key_bob
 
 
-def encrypt_and_send(ip: str, port: int, message: str, private_key_alice, public_key_bob):
+def build_payload(message: str, private_key_alice, public_key_bob) -> dict:
     plaintext = message.encode()
 
     # AES-256-CBC untuk payload
@@ -57,6 +57,10 @@ def encrypt_and_send(ip: str, port: int, message: str, private_key_alice, public
         "signature": base64.b64encode(signature).decode(),
     }
 
+    return payload
+
+
+def send_payload(ip: str, port: int, payload: dict):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((ip, port))
         s.sendall(json.dumps(payload).encode())
@@ -99,6 +103,13 @@ class AliceApp:
         self.send_btn = ttk.Button(action_frame, text="Kirim", command=self.on_send)
         self.send_btn.pack(side=tk.LEFT)
 
+        # Payload preview
+        payload_frame = ttk.LabelFrame(container, text="Payload JSON")
+        payload_frame.pack(fill=tk.BOTH, expand=True, pady=(8, 0))
+
+        self.payload_box = scrolledtext.ScrolledText(payload_frame, height=8, state=tk.DISABLED, wrap=tk.WORD)
+        self.payload_box.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
+
         # Log area
         log_frame = ttk.LabelFrame(container, text="Log")
         log_frame.pack(fill=tk.BOTH, expand=True, pady=(8, 0))
@@ -111,6 +122,13 @@ class AliceApp:
         self.log_box.insert(tk.END, text + "\n")
         self.log_box.see(tk.END)
         self.log_box.configure(state=tk.DISABLED)
+
+    def show_payload(self, payload: dict):
+        pretty = json.dumps(payload, indent=2)
+        self.payload_box.configure(state=tk.NORMAL)
+        self.payload_box.delete("1.0", tk.END)
+        self.payload_box.insert(tk.END, pretty)
+        self.payload_box.configure(state=tk.DISABLED)
 
     def on_send(self):
         ip = self.ip_var.get().strip()
@@ -137,7 +155,9 @@ class AliceApp:
 
         def worker():
             try:
-                encrypt_and_send(ip, port_int, message, self.private_key_alice, self.public_key_bob)
+                payload = build_payload(message, self.private_key_alice, self.public_key_bob)
+                self.show_payload(payload)
+                send_payload(ip, port_int, payload)
                 self.append_log("[OK] Pesan terkirim")
             except Exception as exc:
                 self.append_log(f"[ERROR] Gagal mengirim: {exc}")
