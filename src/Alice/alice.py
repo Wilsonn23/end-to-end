@@ -21,8 +21,11 @@ with open(KEYS_DIR / "alice_private.pem", "rb") as f:
 with open(KEYS_DIR / "bob_public.pem", "rb") as f:
     public_key_bob = serialization.load_pem_public_key(f.read())
 
-# 2. Menyiapkan Plaintext [cite: 41, 81, 82]
-plaintext = b"Halo Bob, ini adalah pesan rahasia yang sangat aman."
+# 2. Menyiapkan Plaintext berbasis input [cite: 41, 81, 82]
+user_message = input("Masukkan pesan untuk Bob: ").strip()
+if not user_message:
+    user_message = "Halo Bob, ini adalah pesan rahasia yang sangat aman."
+plaintext = user_message.encode()
 
 # 3. Enkripsi Simetris (AES-256) [cite: 42, 43, 86]
 sym_key = os.urandom(32) 

@@ -3,11 +3,17 @@ import os
 import subprocess
 import sys
 import time
+import threading
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 BOB_SCRIPT = SCRIPT_DIR / "Bob" / "bob.py"
 ALICE_SCRIPT = SCRIPT_DIR / "Alice" / "alice.py"
+
+
+def _stream_pipe(pipe, prefix: str) -> None:
+    for line in pipe:
+        print(f"{prefix} {line.rstrip()}")
 
 
 def run_bob_process(timeout: float = 10.0) -> subprocess.Popen:
@@ -36,6 +42,10 @@ def run_bob_process(timeout: float = 10.0) -> subprocess.Popen:
         if "Bob menunggu pesan di port" in line:
             ready = True
             break
+
+    # Teruskan log stdout/stderr Bob supaya output setelah siap tetap terlihat
+    threading.Thread(target=_stream_pipe, args=(proc.stdout, "[Bob]"), daemon=True).start()
+    threading.Thread(target=_stream_pipe, args=(proc.stderr, "[Bob][err]"), daemon=True).start()
 
     if not ready:
         print("[main] Peringatan: Bob kemungkinan belum siap, melanjutkan eksekusi.")
