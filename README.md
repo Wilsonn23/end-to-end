@@ -26,6 +26,17 @@ Demo sederhana enkripsi hibrid (RSA + AES) dan tanda tangan digital antara Alice
 	```
 	Ketik pesan saat diminta, lalu Enter.
 
+### Opsi GUI: menggunakan GUI
+1) Terminal 1 (Bob):
+	```bash
+	python src/Bob/gui_bob.py
+	```
+2) Terminal 2 (Alice):
+	```bash
+	python src/Alice/gui_alice.py
+	```
+	Ketik pesan saat diminta, lalu Enter.
+
 ### Opsi terorkestrasi: via main.py
 - Jalankan Bob saja: `python src/main.py --bob` / `python src/Bob/bob.py`
 - Jalankan Alice saja: `python src/main.py --alice` / `python src/Alice/alice.py`
